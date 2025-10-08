@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Progress Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background: linear-gradient(90deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #fdbb2d;
+            padding-bottom: 10px;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #1a2a6c;
+        }
+        
+        .metric.mit {
+            border-left-color: #b21f1f;
+        }
+        
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .highlight {
+            background: linear-gradient(90deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border-left: 5px solid #fdbb2d;
+        }
+        
+        .highlight h3 {
+            color: #b21f1f;
+            margin-bottom: 10px;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-card h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #fdbb2d;
+            padding-bottom: 10px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .badge-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .badge {
+            text-align: center;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            width: 120px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .badge-bronze {
+            border-top: 4px solid #cd7f32;
+        }
+        
+        .badge-silver {
+            border-top: 4px solid #c0c0c0;
+        }
+        
+        .badge-gold {
+            border-top: 4px solid #ffd700;
+        }
+        
+        .badge-diamond {
+            border-top: 4px solid #b9f2ff;
+        }
+        
+        .badge-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            border-radius: 5px;
+        }
+        
+        .progress-mit {
+            background: linear-gradient(90deg, #b21f1f, #fdbb2d);
+        }
+        
+        .progress-klu {
+            background: linear-gradient(90deg, #1a2a6c, #4a6fc9);
+        }
+        
+        .college-comparison {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .college-section {
+            flex: 1;
+            padding: 15px;
+        }
+        
+        .college-title {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        
+        .mit-title {
+            background-color: rgba(178, 31, 31, 0.1);
+            color: #b21f1f;
+        }
+        
+        .klu-title {
+            background-color: rgba(26, 42, 108, 0.1);
+            color: #1a2a6c;
+        }
+        
+        .completion-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .completion-label {
+            font-weight: 500;
+        }
+        
+        .completion-value {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .comparison-bar {
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .bar-mit {
+            background: linear-gradient(90deg, #b21f1f, #fdbb2d);
+            height: 100%;
+            border-radius: 10px;
+        }
+        
+        .bar-klu {
+            background: linear-gradient(90deg, #1a2a6c, #4a6fc9);
+            height: 100%;
+            border-radius: 10px;
+        }
+        
+        .bar-label {
+            position: absolute;
+            top: 0;
+            left: 10px;
+            color: white;
+            font-weight: 500;
+            line-height: 20px;
+        }
+        
+        .course-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .course-section h3 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.4rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .college-comparison {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Student Progress Dashboard</h1>
+            <p class="subtitle">Course-wise Comparison | MITWPU vs KLU</p>
+        </header>
+        
+        <div class="highlight">
+            <h3>Key Insight</h3>
+            <p>MITWPU students show exceptional performance in advanced courses, with higher completion rates in the 3-Star Roadmap course compared to KLU students.</p>
+        </div>
+        
+        <!-- Problem Solving Course Comparison -->
+        <div class="course-section">
+            <h3>Problem Solving Course Comparison (335 problems)</h3>
+            <div class="dashboard">
+                <div class="card">
+                    <h2>Course Completion</h2>
+                    <p>Student progress distribution in Problem Solving course</p>
+                    
+                    <div class="completion-metric">
+                        <div class="completion-label">MITWPU Completion Rate</div>
+                        <div class="completion-value">82%</div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="bar-mit" style="width: 82%">
+                            <div class="bar-label">MITWPU</div>
+                        </div>
+                    </div>
+                    
+                    <div class="completion-metric">
+                        <div class="completion-label">KLU Completion Rate</div>
+                        <div class="completion-value">58%</div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="bar-klu" style="width: 58%">
+                            <div class="bar-label">KLU</div>
+                        </div>
+                    </div>
+                    
+                    <div class="highlight" style="margin-top: 20px; padding: 15px;">
+                        <h3>Course Insight</h3>
+                        <p>MITWPU students show 24% higher completion rate in Problem Solving course, demonstrating stronger foundational skills.</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>Performance Metrics</h2>
+                    
+                    <div class="metric mit">
+                        <div class="metric-label">MITWPU Avg. Difficulty Rating</div>
+                        <div class="metric-value">512.7</div>
+                        <div class="metric-label">Problems Solved</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-label">KLU Avg. Difficulty Rating</div>
+                        <div class="metric-value">517</div>
+                        <div class="metric-label">Problems Solved</div>
+                    </div>
+                    
+                    <div class="metric mit">
+                        <div class="metric-label">MITWPU High Achievers</div>
+                        <div class="metric-value">360</div>
+                        <div class="metric-label">Students (>90%)</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-label">KLU High Achievers</div>
+                        <div class="metric-value">91</div>
+                        <div class="metric-label">Students (>90%)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 3-Star Roadmap Course Comparison -->
+        <div class="course-section">
+            <h3>3-Star Roadmap Course Comparison (353 problems)</h3>
+            <div class="dashboard">
+                <div class="card">
+                    <h2>Course Completion</h2>
+                    <p>Student progress distribution in 3-Star Roadmap course</p>
+                    
+                    <div class="completion-metric">
+                        <div class="completion-label">MITWPU Completion Rate</div>
+                        <div class="completion-value">75%</div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="bar-mit" style="width: 75%">
+                            <div class="bar-label">MITWPU</div>
+                        </div>
+                    </div>
+                    
+                    <div class="completion-metric">
+                        <div class="completion-label">KLU Completion Rate</div>
+                        <div class="completion-value">45%</div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="bar-klu" style="width: 45%">
+                            <div class="bar-label">KLU</div>
+                        </div>
+                    </div>
+                    
+                    <div class="highlight" style="margin-top: 20px; padding: 15px;">
+                        <h3>Course Insight</h3>
+                        <p>MITWPU maintains strong performance in advanced course with 30% higher completion rate, showing excellent skill progression.</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>Performance Metrics</h2>
+                    
+                    <div class="metric mit">
+                        <div class="metric-label">MITWPU Avg. Difficulty Rating</div>
+                        <div class="metric-value">1032.6</div>
+                        <div class="metric-label">Problems Solved</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-label">KLU Avg. Difficulty Rating</div>
+                        <div class="metric-value">1074</div>
+                        <div class="metric-label">Problems Solved</div>
+                    </div>
+                    
+                    <div class="metric mit">
+                        <div class="metric-label">MITWPU Solid Performers</div>
+                        <div class="metric-value">238</div>
+                        <div class="metric-label">Students (50-70%)</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-label">KLU Beginners</div>
+                        <div class="metric-value">1434</div>
+                        <div class="metric-label">Students (<10%)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2>Engagement & Consistency</h2>
+                <p>Daily Activity Badges show student dedication and consistent learning habits.</p>
+                
+                <div class="college-comparison">
+                    <div class="college-section">
+                        <div class="college-title mit-title">MITWPU</div>
+                        <div class="badge-container">
+                            <div class="badge badge-bronze">
+                                <div class="metric-label">Bronze (5+ days)</div>
+                                <div class="badge-value">144</div>
+                            </div>
+                            <div class="badge badge-silver">
+                                <div class="metric-label">Silver (25+ days)</div>
+                                <div class="badge-value">16</div>
+                            </div>
+                            <div class="badge badge-gold">
+                                <div class="metric-label">Gold (50+ days)</div>
+                                <div class="badge-value">3</div>
+                            </div>
+                            <div class="badge badge-diamond">
+                                <div class="metric-label">Diamond (100+ days)</div>
+                                <div class="badge-value">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="college-section">
+                        <div class="college-title klu-title">KLU</div>
+                        <div class="badge-container">
+                            <div class="badge badge-bronze">
+                                <div class="metric-label">Bronze (5+ days)</div>
+                                <div class="badge-value">1,389</div>
+                            </div>
+                            <div class="badge badge-silver">
+                                <div class="metric-label">Silver (25+ days)</div>
+                                <div class="badge-value">408</div>
+                            </div>
+                            <div class="badge badge-gold">
+                                <div class="metric-label">Gold (50+ days)</div>
+                                <div class="badge-value">257</div>
+                            </div>
+                            <div class="badge badge-diamond">
+                                <div class="metric-label">Diamond (100+ days)</div>
+                                <div class="badge-value">138</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Skill Development</h2>
+                <p>Problem Solver Badges measure coding proficiency through problem volume.</p>
+                
+                <div class="college-comparison">
+                    <div class="college-section">
+                        <div class="college-title mit-title">MITWPU</div>
+                        <div class="badge-container">
+                            <div class="badge badge-bronze">
+                                <div class="metric-label">Bronze (50+)</div>
+                                <div class="badge-value">510</div>
+                            </div>
+                            <div class="badge badge-silver">
+                                <div class="metric-label">Silver (250+)</div>
+                                <div class="badge-value">441</div>
+                            </div>
+                            <div class="badge badge-gold">
+                                <div class="metric-label">Gold (500+)</div>
+                                <div class="badge-value">176</div>
+                            </div>
+                            <div class="badge badge-diamond">
+                                <div class="metric-label">Diamond (1000+)</div>
+                                <div class="badge-value">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="college-section">
+                        <div class="college-title klu-title">KLU</div>
+                        <div class="badge-container">
+                            <div class="badge badge-bronze">
+                                <div class="metric-label">Bronze (50+)</div>
+                                <div class="badge-value">4,459</div>
+                            </div>
+                            <div class="badge badge-silver">
+                                <div class="metric-label">Silver (250+)</div>
+                                <div class="badge-value">1,897</div>
+                            </div>
+                            <div class="badge badge-gold">
+                                <div class="metric-label">Gold (500+)</div>
+                                <div class="badge-value">337</div>
+                            </div>
+                            <div class="badge badge-diamond">
+                                <div class="metric-label">Diamond (1000+)</div>
+                                <div class="badge-value">22</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Overall Performance</h2>
+                
+                <div class="metric mit">
+                    <div class="metric-label">MITWPU Avg Problems Solved</div>
+                    <div class="metric-value">427</div>
+                    <div class="metric-label">Per User</div>
+                </div>
+                
+                <div class="metric">
+                    <div class="metric-label">KLU Avg Problems Solved</div>
+                    <div class="metric-value">237</div>
+                    <div class="metric-label">Per User</div>
+                </div>
+                
+                <div class="metric mit">
+                    <div class="metric-label">MITWPU Paths Started</div>
+                    <div class="metric-value">4.28</div>
+                    <div class="metric-label">Per User</div>
+                </div>
+                
+                <div class="metric">
+                    <div class="metric-label">KLU Paths Started</div>
+                    <div class="metric-value">7</div>
+                    <div class="metric-label">Per User</div>
+                </div>
+                
+                <div class="highlight" style="margin-top: 20px; padding: 15px;">
+                    <h3>Efficiency Insight</h3>
+                    <p>MITWPU students solve 80% more problems per user despite starting fewer paths, indicating focused and effective learning.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-card">
+                <h2>Problem Solving Course Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="problemSolvingChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2>3-Star Roadmap Course Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="roadmapChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Data Source: CodeChef Platform Analytics | Report Generated: October 2023</p>
+            <p>© 2023 Student Progress Dashboard</p>
+        </div>
+    </div>
+
+    <script>
+        // Problem Solving Course Chart
+        const problemSolvingCtx = document.getElementById('problemSolvingChart').getContext('2d');
+        const problemSolvingChart = new Chart(problemSolvingCtx, {
+            type: 'bar',
+            data: {
+                labels: ['>90%', '70-90%', '50-70%', '25-50%', '10-25%', '<10%'],
+                datasets: [
+                    {
+                        label: 'MITWPU Problem Solving',
+                        data: [360, 58, 55, 24, 9, 21],
+                        backgroundColor: 'rgba(178, 31, 31, 0.7)',
+                        borderColor: 'rgba(178, 31, 31, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'KLU Problem Solving',
+                        data: [91, 384, 493, 568, 414, 458],
+                        backgroundColor: 'rgba(26, 42, 108, 0.7)',
+                        borderColor: 'rgba(26, 42, 108, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Students'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Problem Solving Course Progress Distribution',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+        
+        // 3-Star Roadmap Course Chart
+        const roadmapCtx = document.getElementById('roadmapChart').getContext('2d');
+        const roadmapChart = new Chart(roadmapCtx, {
+            type: 'bar',
+            data: {
+                labels: ['>90%', '70-90%', '50-70%', '25-50%', '10-25%', '<10%'],
+                datasets: [
+                    {
+                        label: 'MITWPU 3-Star Roadmap',
+                        data: [40, 48, 238, 34, 22, 34],
+                        backgroundColor: 'rgba(253, 187, 45, 0.7)',
+                        borderColor: 'rgba(253, 187, 45, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'KLU 3-Star Roadmap',
+                        data: [23, 14, 33, 233, 825, 1434],
+                        backgroundColor: 'rgba(74, 111, 201, 0.7)',
+                        borderColor: 'rgba(74, 111, 201, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Students'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '3-Star Roadmap Course Progress Distribution',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
